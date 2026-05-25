@@ -16,6 +16,12 @@ create table public.profiles (
   updated_at timestamptz not null default now()
 );
 
+create table public.app_admins (
+  email text primary key,
+  username text not null,
+  created_at timestamptz not null default now()
+);
+
 create table public.genres (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
@@ -85,6 +91,20 @@ create table public.review_likes (
   primary key (review_id, user_id)
 );
 
+create or replace function public.is_app_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.app_admins
+    where lower(email) = lower(coalesce(auth.jwt()->>'email', ''))
+  );
+$$;
+
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -147,6 +167,7 @@ after insert on auth.users
 for each row execute function public.handle_new_user();
 
 alter table public.profiles enable row level security;
+alter table public.app_admins enable row level security;
 alter table public.genres enable row level security;
 alter table public.titles enable row level security;
 alter table public.title_genres enable row level security;
@@ -164,6 +185,11 @@ on public.profiles for update
 using (auth.uid() = id)
 with check (auth.uid() = id);
 
+create policy "admins are readable by authenticated users"
+on public.app_admins for select
+to authenticated
+using (true);
+
 create policy "genres are readable by everyone"
 on public.genres for select
 using (true);
@@ -176,13 +202,13 @@ with check (auth.uid() = created_by);
 create policy "genre creator updates genre"
 on public.genres for update
 to authenticated
-using (auth.uid() = created_by)
-with check (auth.uid() = created_by);
+using (auth.uid() = created_by or public.is_app_admin())
+with check (auth.uid() = created_by or public.is_app_admin());
 
 create policy "genre creator deletes genre"
 on public.genres for delete
 to authenticated
-using (auth.uid() = created_by);
+using (auth.uid() = created_by or public.is_app_admin());
 
 create policy "titles are readable by everyone"
 on public.titles for select
@@ -196,13 +222,13 @@ with check (auth.uid() = created_by);
 create policy "title creator updates title"
 on public.titles for update
 to authenticated
-using (auth.uid() = created_by)
-with check (auth.uid() = created_by);
+using (auth.uid() = created_by or public.is_app_admin())
+with check (auth.uid() = created_by or public.is_app_admin());
 
 create policy "title creator deletes title"
 on public.titles for delete
 to authenticated
-using (auth.uid() = created_by);
+using (auth.uid() = created_by or public.is_app_admin());
 
 create policy "title genres are readable by everyone"
 on public.title_genres for select
@@ -216,7 +242,7 @@ with check (auth.uid() = created_by);
 create policy "relation creator deletes title genre"
 on public.title_genres for delete
 to authenticated
-using (auth.uid() = created_by);
+using (auth.uid() = created_by or public.is_app_admin());
 
 create policy "users read only their own watchlist"
 on public.user_watchlist for select
@@ -251,13 +277,13 @@ with check (auth.uid() = user_id);
 create policy "users update their own reviews"
 on public.reviews for update
 to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using (auth.uid() = user_id or public.is_app_admin())
+with check (auth.uid() = user_id or public.is_app_admin());
 
 create policy "users delete their own reviews"
 on public.reviews for delete
 to authenticated
-using (auth.uid() = user_id);
+using (auth.uid() = user_id or public.is_app_admin());
 
 create policy "comments are readable by everyone"
 on public.comments for select
@@ -271,13 +297,13 @@ with check (auth.uid() = user_id);
 create policy "users update their own comments"
 on public.comments for update
 to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using (auth.uid() = user_id or public.is_app_admin())
+with check (auth.uid() = user_id or public.is_app_admin());
 
 create policy "users delete their own comments"
 on public.comments for delete
 to authenticated
-using (auth.uid() = user_id);
+using (auth.uid() = user_id or public.is_app_admin());
 
 create policy "likes are readable by everyone"
 on public.review_likes for select
@@ -291,7 +317,7 @@ with check (auth.uid() = user_id);
 create policy "users remove their own likes"
 on public.review_likes for delete
 to authenticated
-using (auth.uid() = user_id);
+using (auth.uid() = user_id or public.is_app_admin());
 
 insert into public.genres (name)
 values
@@ -305,6 +331,11 @@ values
   ('Romance'),
   ('Suspenso')
 on conflict (name) do nothing;
+
+insert into public.app_admins (email, username)
+values ('tylornoa@gmail.com', 'Noa12')
+on conflict (email) do update
+set username = excluded.username;
 
 alter table public.comments replica identity full;
 alter table public.user_watchlist replica identity full;

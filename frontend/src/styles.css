@@ -514,6 +514,22 @@ h3 {
   transform: translateY(-3px);
 }
 
+.title-actions {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.title-actions button {
+  min-height: 34px;
+  padding: 6px 8px;
+}
+
+.danger-action {
+  border-color: rgba(255, 78, 126, 0.45);
+  color: #ff7aa4;
+}
+
 .cover {
   width: 100%;
   height: 136px;
@@ -816,9 +832,19 @@ h3 {
 .review header {
   align-items: center;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   gap: 8px;
   margin-bottom: 4px;
+}
+
+.inline-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.inline-actions button {
+  min-height: 28px;
+  padding: 4px 7px;
 }
 
 .review header span {

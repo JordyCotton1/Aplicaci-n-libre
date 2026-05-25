@@ -24,6 +24,8 @@ import { supabase } from './lib/supabase';
 
 const titleTypes = ['serie', 'pelicula', 'anime'];
 const statuses = ['pendiente', 'viendo', 'visto', 'abandonado'];
+const moderatorEmail = 'tylornoa@gmail.com';
+const moderatorUsername = 'Noa12';
 
 const emptyTitle = {
   name: '',
@@ -133,6 +135,7 @@ export function App() {
   const [selectedTitle, setSelectedTitle] = useState(null);
   const [filters, setFilters] = useState({ search: '', type: 'todos', genre: 'todos' });
   const [titleForm, setTitleForm] = useState(emptyTitle);
+  const [editingTitle, setEditingTitle] = useState(null);
   const [reviewForm, setReviewForm] = useState({ rating: 10, body: '' });
   const [commentText, setCommentText] = useState('');
   const [activeTab, setActiveTab] = useState('reviews');
@@ -336,12 +339,48 @@ export function App() {
   const reviewCount = visibleReviews.length;
   const commentCount = comments.length;
   const displayedAvatar = normalizePublicStorageUrl(profile?.avatar_url) || avatarUrl;
+  const isModerator =
+    user?.email?.toLowerCase() === moderatorEmail ||
+    profile?.username === moderatorUsername;
   const currentWatchItem = currentTitle
     ? watchlist.find((item) => item.title_id === currentTitle.id)
     : null;
 
   function titleIsInWatchlist(titleId) {
     return watchlist.some((item) => item.title_id === titleId);
+  }
+
+  function canManageTitle(title) {
+    return Boolean(user && title && (isModerator || title.created_by === user.id));
+  }
+
+  function canManageUserContent(ownerId) {
+    return Boolean(user && (isModerator || ownerId === user.id));
+  }
+
+  function openNewTitleModal() {
+    setEditingTitle(null);
+    setTitleForm(emptyTitle);
+    setShowTitleModal(true);
+  }
+
+  function openEditTitleModal(title) {
+    setEditingTitle(title);
+    setTitleForm({
+      name: title.name ?? '',
+      title_type: title.title_type ?? 'serie',
+      release_year: title.release_year ?? '',
+      synopsis: title.synopsis ?? '',
+      genre_id: title.title_genres?.[0]?.genre_id ?? '',
+      cover: null
+    });
+    setShowTitleModal(true);
+  }
+
+  function closeTitleModal() {
+    setShowTitleModal(false);
+    setEditingTitle(null);
+    setTitleForm(emptyTitle);
   }
 
   function updateFilters(nextFilters) {
@@ -590,7 +629,72 @@ export function App() {
     event.preventDefault();
     if (!user) return;
 
-    const coverUrl = await uploadCover(titleForm.cover);
+    if (
+      !titleForm.name.trim() ||
+      !titleForm.title_type ||
+      !titleForm.genre_id ||
+      !titleForm.release_year ||
+      !titleForm.synopsis.trim() ||
+      (!editingTitle && !titleForm.cover)
+    ) {
+      setMessage('Completa nombre, tipo, género, año, sinopsis y portada antes de guardar.');
+      return;
+    }
+
+    const coverUrl = titleForm.cover ? await uploadCover(titleForm.cover) : editingTitle?.cover_url;
+    if (!coverUrl) return;
+
+    if (editingTitle) {
+      // Actualizo el título seleccionado; RLS solo permite esto al creador o al moderador.
+      const { data: updatedTitle, error: updateError } = await supabase
+        .from('titles')
+        .update({
+          name: titleForm.name,
+          title_type: titleForm.title_type,
+          release_year: Number(titleForm.release_year),
+          synopsis: titleForm.synopsis,
+          cover_url: coverUrl
+        })
+        .eq('id', editingTitle.id)
+        .select('*, title_genres(genre_id, genres(*))')
+        .single();
+
+      if (updateError) {
+        setMessage(updateError.message);
+        return;
+      }
+
+      // Borro la relación anterior de género para reemplazarla por la elegida en el formulario.
+      const { error: deleteGenresError } = await supabase
+        .from('title_genres')
+        .delete()
+        .eq('title_id', editingTitle.id);
+
+      if (deleteGenresError) {
+        setMessage(deleteGenresError.message);
+        return;
+      }
+
+      // Guardo la nueva relación entre el título editado y su género.
+      const { error: insertGenreError } = await supabase.from('title_genres').insert({
+        title_id: editingTitle.id,
+        genre_id: titleForm.genre_id,
+        created_by: user.id
+      });
+
+      if (insertGenreError) {
+        setMessage(insertGenreError.message);
+        return;
+      }
+
+      setSelectedTitle(updatedTitle);
+      setEditingTitle(null);
+      setTitleForm(emptyTitle);
+      setShowTitleModal(false);
+      setMessage('Título actualizado.');
+      loadCatalogData();
+      return;
+    }
 
     // Inserto un título nuevo en el catálogo con mi usuario como creador para que las políticas sepan quién lo creó.
     const { data: titleData, error: titleError } = await supabase
@@ -598,7 +702,7 @@ export function App() {
       .insert({
         name: titleForm.name,
         title_type: titleForm.title_type,
-        release_year: titleForm.release_year ? Number(titleForm.release_year) : null,
+        release_year: Number(titleForm.release_year),
         synopsis: titleForm.synopsis,
         cover_url: coverUrl,
         created_by: user.id
@@ -629,6 +733,29 @@ export function App() {
     setShowTitleModal(false);
     setMessage('Título creado.');
     loadCatalogData();
+  }
+
+  async function deleteTitle(title) {
+    if (!canManageTitle(title)) return;
+
+    // Elimino un título del catálogo; RLS solo permite esto al creador o al moderador.
+    const { error } = await supabase
+      .from('titles')
+      .delete()
+      .eq('id', title.id);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    if (selectedTitle?.id === title.id) {
+      closeDetail();
+    }
+
+    setMessage('Título eliminado.');
+    loadCatalogData();
+    loadWatchlist();
   }
 
   async function addToWatchlist(title, status = 'pendiente') {
@@ -727,6 +854,32 @@ export function App() {
     loadTitleActivity(currentTitle.id);
   }
 
+  function editReview(review) {
+    setActiveTab('reviews');
+    setReviewForm({
+      rating: review.rating,
+      body: review.body
+    });
+  }
+
+  async function deleteReview(review) {
+    if (!canManageUserContent(review.user_id)) return;
+
+    // Elimino una reseña; RLS solo permite esto al autor o al moderador.
+    const { error } = await supabase
+      .from('reviews')
+      .delete()
+      .eq('id', review.id);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setMessage('Reseña eliminada.');
+    loadTitleActivity(currentTitle.id);
+  }
+
   async function addComment(reviewId) {
     if (!user || !commentText.trim()) return;
 
@@ -743,6 +896,24 @@ export function App() {
     }
 
     setCommentText('');
+    loadTitleActivity(currentTitle.id);
+  }
+
+  async function deleteComment(comment) {
+    if (!canManageUserContent(comment.user_id)) return;
+
+    // Elimino un comentario; RLS solo permite esto al autor o al moderador.
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', comment.id);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setMessage('Comentario eliminado.');
     loadTitleActivity(currentTitle.id);
   }
 
@@ -946,19 +1117,19 @@ export function App() {
             </button>
           </form>
 
-          <button className="new-title-trigger" type="button" onClick={() => setShowTitleModal(true)}>
+          <button className="new-title-trigger" type="button" onClick={openNewTitleModal}>
             <Plus size={24} />
             Nuevo título
           </button>
 
           {showTitleModal && (
-            <div className="modal-backdrop" onClick={() => setShowTitleModal(false)}>
+            <div className="modal-backdrop" onClick={closeTitleModal}>
           <form className="panel stack title-modal" onSubmit={createTitle} onClick={(event) => event.stopPropagation()}>
             <h2>
               <WandSparkles size={18} />
-              Nuevo título
+              {editingTitle ? 'Editar título' : 'Nuevo título'}
             </h2>
-            <button className="modal-close" type="button" onClick={() => setShowTitleModal(false)} title="Cerrar">
+            <button className="modal-close" type="button" onClick={closeTitleModal} title="Cerrar">
               <X size={18} />
             </button>
             <label>
@@ -987,6 +1158,7 @@ export function App() {
               <select
                 value={titleForm.genre_id}
                 onChange={(event) => setTitleForm({ ...titleForm, genre_id: event.target.value })}
+                required
               >
                 <option value="">Sin género</option>
                 {genres.map((genre) => (
@@ -1002,6 +1174,9 @@ export function App() {
                 type="number"
                 value={titleForm.release_year}
                 onChange={(event) => setTitleForm({ ...titleForm, release_year: event.target.value })}
+                min="1888"
+                max="2100"
+                required
               />
             </label>
             <label>
@@ -1009,6 +1184,7 @@ export function App() {
               <textarea
                 value={titleForm.synopsis}
                 onChange={(event) => setTitleForm({ ...titleForm, synopsis: event.target.value })}
+                required
               />
             </label>
             <label className="file-label">
@@ -1017,12 +1193,13 @@ export function App() {
               <input
                 type="file"
                 accept="image/*"
+                required={!editingTitle}
                 onChange={(event) => setTitleForm({ ...titleForm, cover: event.target.files?.[0] ?? null })}
               />
             </label>
             <button className="primary" type="submit">
               <Plus size={17} />
-              Crear
+              {editingTitle ? 'Guardar cambios' : 'Crear'}
             </button>
           </form>
             </div>
@@ -1130,6 +1307,33 @@ export function App() {
                       <Plus size={16} />
                       {titleIsInWatchlist(title.id) ? 'En lista' : 'Lista'}
                     </button>
+                    {canManageTitle(title) && (
+                      <div className="title-actions">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openEditTitleModal(title);
+                          }}
+                          title="Editar título"
+                        >
+                          <Pencil size={15} />
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="danger-action"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            deleteTitle(title);
+                          }}
+                          title="Eliminar título"
+                        >
+                          <Trash2 size={15} />
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
@@ -1228,6 +1432,16 @@ export function App() {
                               <strong>{review.profiles?.username || 'usuario'}</strong>
                               <small>Hace 2 dias</small>
                               <span>{review.rating}/10</span>
+                              {canManageUserContent(review.user_id) && (
+                                <div className="inline-actions">
+                                  <button type="button" onClick={() => editReview(review)}>
+                                    <Pencil size={14} />
+                                  </button>
+                                  <button type="button" className="danger-action" onClick={() => deleteReview(review)}>
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              )}
                             </header>
                             <p>{review.body}</p>
                             <button
@@ -1301,6 +1515,12 @@ export function App() {
                         <header>
                           <strong>{comment.profiles?.username || 'usuario'}</strong>
                           <small>Comentario</small>
+                          {canManageUserContent(comment.user_id) && (
+                            <button type="button" className="danger-action" onClick={() => deleteComment(comment)}>
+                              <Trash2 size={14} />
+                              Eliminar
+                            </button>
+                          )}
                         </header>
                         <p>{comment.body}</p>
                       </article>
