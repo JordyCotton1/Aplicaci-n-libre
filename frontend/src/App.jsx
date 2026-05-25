@@ -34,6 +34,7 @@ const emptyTitle = {
   release_year: '',
   synopsis: '',
   genre_id: '',
+  other_genre: '',
   cover: null
 };
 
@@ -373,6 +374,7 @@ export function App() {
       release_year: title.release_year ?? '',
       synopsis: title.synopsis ?? '',
       genre_id: title.title_genres?.[0]?.genre_id ?? '',
+      other_genre: '',
       cover: null
     });
     setShowTitleModal(true);
@@ -642,6 +644,43 @@ export function App() {
     return data.publicUrl;
   }
 
+  async function resolveGenreId() {
+    if (titleForm.genre_id !== 'other') return titleForm.genre_id;
+
+    const genreName = titleForm.other_genre.trim();
+
+    // Busco si el género escrito ya existe para no duplicarlo.
+    const { data: existingGenre, error: selectError } = await supabase
+      .from('genres')
+      .select('id')
+      .ilike('name', genreName)
+      .maybeSingle();
+
+    if (selectError) {
+      setMessage(selectError.message);
+      return null;
+    }
+
+    if (existingGenre) return existingGenre.id;
+
+    // Creo un género nuevo para que quede disponible en el catálogo.
+    const { data: newGenre, error: insertError } = await supabase
+      .from('genres')
+      .insert({
+        name: genreName,
+        created_by: user.id
+      })
+      .select('id')
+      .single();
+
+    if (insertError) {
+      setMessage(insertError.message);
+      return null;
+    }
+
+    return newGenre.id;
+  }
+
   async function createTitle(event) {
     event.preventDefault();
     if (!user) return;
@@ -650,6 +689,7 @@ export function App() {
       !titleForm.name.trim() ||
       !titleForm.title_type ||
       !titleForm.genre_id ||
+      (titleForm.genre_id === 'other' && !titleForm.other_genre.trim()) ||
       !titleForm.release_year ||
       !titleForm.synopsis.trim() ||
       (!editingTitle && !titleForm.cover)
@@ -660,6 +700,9 @@ export function App() {
 
     const coverUrl = titleForm.cover ? await uploadCover(titleForm.cover) : editingTitle?.cover_url;
     if (!coverUrl) return;
+
+    const genreId = await resolveGenreId();
+    if (!genreId) return;
 
     if (editingTitle) {
       // Actualizo el título seleccionado; RLS solo permite esto al creador o al moderador.
@@ -695,7 +738,7 @@ export function App() {
       // Guardo la nueva relación entre el título editado y su género.
       const { error: insertGenreError } = await supabase.from('title_genres').insert({
         title_id: editingTitle.id,
-        genre_id: titleForm.genre_id,
+        genre_id: genreId,
         created_by: user.id
       });
 
@@ -736,7 +779,7 @@ export function App() {
       // Relaciono el título con un género para que aparezca en los filtros del catálogo.
       const { error: relationError } = await supabase.from('title_genres').insert({
         title_id: titleData.id,
-        genre_id: titleForm.genre_id,
+        genre_id: genreId,
         created_by: user.id
       });
 
@@ -1185,8 +1228,20 @@ export function App() {
                     {genre.name}
                   </option>
                 ))}
+                <option value="other">Otro género...</option>
               </select>
             </label>
+            {titleForm.genre_id === 'other' && (
+              <label>
+                Escribe el género
+                <input
+                  value={titleForm.other_genre}
+                  onChange={(event) => setTitleForm({ ...titleForm, other_genre: event.target.value })}
+                  placeholder="Ej: Misterio, Musical, Histórico"
+                  required
+                />
+              </label>
+            )}
             <label>
               Año
               <input
