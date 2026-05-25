@@ -26,6 +26,7 @@ const titleTypes = ['serie', 'pelicula', 'anime'];
 const statuses = ['pendiente', 'viendo', 'visto', 'abandonado'];
 const moderatorEmail = 'tylornoa@gmail.com';
 const moderatorUsername = 'Noa12';
+const siteUrl = 'https://watchlist-anime.netlify.app/';
 
 const emptyTitle = {
   name: '',
@@ -509,14 +510,30 @@ export function App() {
     event.preventDefault();
     setMessage('');
 
+    if (!authForm.email.trim() || !authForm.password.trim()) {
+      setMessage('Completa correo y contraseña.');
+      return;
+    }
+
+    if (authForm.password.length < 8) {
+      setMessage('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+
     if (authMode === 'register') {
+      if (!authForm.username.trim()) {
+        setMessage('Completa el nombre de usuario.');
+        return;
+      }
+
       // Registro una cuenta nueva y envio el username para que el trigger cree el perfil con ese dato.
       const { error } = await supabase.auth.signUp({
         email: authForm.email,
         password: authForm.password,
         options: {
+          emailRedirectTo: siteUrl,
           data: {
-            username: authForm.username || authForm.email.split('@')[0]
+            username: authForm.username
           }
         }
       });
@@ -979,6 +996,8 @@ export function App() {
                   value={authForm.username}
                   onChange={(event) => setAuthForm({ ...authForm, username: event.target.value })}
                   placeholder="tu_nombre"
+                  required
+                  minLength={3}
                 />
               </label>
             )}
@@ -998,7 +1017,7 @@ export function App() {
                 value={authForm.password}
                 onChange={(event) => setAuthForm({ ...authForm, password: event.target.value })}
                 required
-                minLength={6}
+                minLength={8}
               />
             </label>
             <button className="primary" type="submit">
