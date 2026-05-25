@@ -1400,13 +1400,19 @@ export function App() {
                 {activeTab === 'reviews' && (
                   <>
                     <form className="review-form" onSubmit={createReview}>
-                      <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={reviewForm.rating}
-                        onChange={(event) => setReviewForm({ ...reviewForm, rating: event.target.value })}
-                      />
+                      <div className="star-rating" aria-label="Puntuación de la reseña">
+                        {Array.from({ length: 10 }, (_, index) => index + 1).map((value) => (
+                          <button
+                            key={value}
+                            type="button"
+                            className={Number(reviewForm.rating) >= value ? 'active' : ''}
+                            onClick={() => setReviewForm({ ...reviewForm, rating: value })}
+                            title={`${value}/10`}
+                          >
+                            <Star size={18} />
+                          </button>
+                        ))}
+                      </div>
                       <textarea
                         value={reviewForm.body}
                         onChange={(event) => setReviewForm({ ...reviewForm, body: event.target.value })}
@@ -1573,10 +1579,22 @@ export function App() {
                         </option>
                       ))}
                     </select>
-                    <span className="mini-rating">
+                    <label className="watch-rating">
                       <Star size={13} />
-                      {item.rating ?? 9}
-                    </span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={item.rating ?? ''}
+                        placeholder="-"
+                        disabled={item.id?.startsWith('demo')}
+                        onChange={(event) =>
+                          updateWatchItem(item, {
+                            rating: event.target.value ? Number(event.target.value) : null
+                          })
+                        }
+                      />
+                    </label>
                     <button
                       disabled={item.id?.startsWith('demo')}
                       onClick={() => removeWatchItem(item)}

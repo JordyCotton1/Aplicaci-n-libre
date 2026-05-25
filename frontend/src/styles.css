@@ -595,7 +595,7 @@ h3 {
 
 .watch-panel h2 svg,
 .score svg,
-.mini-rating svg {
+.watch-rating svg {
   color: var(--gold);
   fill: currentColor;
 }
@@ -608,9 +608,10 @@ h3 {
 .watch-item {
   align-items: center;
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) 92px 48px 30px;
-  gap: 10px;
-  min-height: 52px;
+  grid-template-columns: 48px minmax(96px, 1fr);
+  gap: 10px 12px;
+  min-height: 86px;
+  padding: 8px 0;
 }
 
 .watch-cover {
@@ -644,16 +645,19 @@ h3 {
   padding: 4px 8px;
   color: #70c9ff;
   border-color: rgba(30, 144, 255, 0.5);
+  grid-column: 2;
 }
 
 .watch-item button {
   min-height: 30px;
   border: 0;
   color: #ff4b7b;
+  grid-column: 2;
+  justify-self: end;
   padding: 0;
 }
 
-.mini-rating {
+.watch-rating {
   align-items: center;
   border: 1px solid rgba(255, 194, 71, 0.42);
   border-radius: 6px;
@@ -664,6 +668,19 @@ h3 {
   gap: 4px;
   justify-content: center;
   min-height: 32px;
+  padding: 4px 7px;
+  width: 78px;
+  grid-column: 2;
+}
+
+.watch-rating input {
+  background: transparent;
+  border: 0;
+  color: var(--gold);
+  min-height: 24px;
+  padding: 0;
+  text-align: center;
+  width: 38px;
 }
 
 .empty-list {
@@ -787,10 +804,30 @@ h3 {
 
 .review-form {
   display: grid;
-  grid-template-columns: 70px 1fr 180px;
+  grid-template-columns: minmax(180px, 1fr) 1.2fr 180px;
   gap: 10px;
   align-items: start;
   margin: 12px 104px 8px 214px;
+}
+
+.star-rating {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.star-rating button {
+  min-height: 34px;
+  padding: 4px;
+}
+
+.star-rating button svg {
+  color: rgba(255, 194, 71, 0.42);
+}
+
+.star-rating button.active svg {
+  color: var(--gold);
+  fill: currentColor;
 }
 
 .review-form textarea {
