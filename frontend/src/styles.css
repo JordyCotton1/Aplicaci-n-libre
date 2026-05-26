@@ -804,7 +804,7 @@ h3 {
 
 .review-form {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 1.2fr 180px;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.2fr) 180px;
   gap: 10px;
   align-items: start;
   margin: 12px 104px 8px 214px;
@@ -814,6 +814,7 @@ h3 {
   display: grid;
   gap: 4px;
   grid-template-columns: repeat(5, 1fr);
+  max-width: 260px;
 }
 
 .star-rating button {
@@ -831,7 +832,8 @@ h3 {
 }
 
 .review-form textarea {
-  min-height: 40px;
+  min-height: 74px;
+  min-width: 0;
 }
 
 .reviews {
@@ -975,6 +977,14 @@ h3 {
 
   .comment-composer {
     grid-template-columns: 1fr;
+  }
+
+  .review-form {
+    grid-template-columns: 1fr;
+  }
+
+  .star-rating {
+    max-width: 320px;
   }
 
   .watch-toggle {
