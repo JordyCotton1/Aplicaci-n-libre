@@ -649,6 +649,7 @@ export function App() {
     }
 
     setProfile(data);
+    setShowProfileEditor(false);
     setMessage('Perfil guardado.');
   }
 
