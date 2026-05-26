@@ -1193,34 +1193,61 @@ h3 {
     padding: 14px;
   }
 
-  .title-grid,
   .detail-header,
   .review-form {
     grid-template-columns: 1fr;
   }
 
   .title-grid {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    scroll-snap-type: x mandatory;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    overflow: visible;
+    padding-bottom: 0;
   }
 
   .title-card {
-    flex: 0 0 min(78vw, 230px);
-    scroll-snap-align: start;
+    min-height: 238px;
+    grid-template-rows: 104px minmax(76px, auto) auto auto;
+    gap: 7px;
+    padding: 8px;
+  }
+
+  .title-card h3 {
+    font-size: 0.72rem;
+    min-height: 2.55em;
+  }
+
+  .title-card p,
+  .title-card .chips span {
+    font-size: 0.66rem;
   }
 
   .cover {
-    height: 148px;
+    height: 104px;
+  }
+
+  .add-list-button,
+  .in-list-button {
+    min-height: 38px;
+    font-size: 0.76rem;
+    padding: 6px;
+  }
+
+  .title-actions {
+    gap: 6px;
+  }
+
+  .title-actions button {
+    min-height: 30px;
+    font-size: 0.72rem;
   }
 
   .detail-cover {
-    width: min(190px, 58vw);
+    width: min(150px, 48vw);
     height: auto;
     aspect-ratio: 2 / 3;
-    max-height: 285px;
+    max-height: 225px;
     justify-self: start;
   }
 
@@ -1230,11 +1257,27 @@ h3 {
   }
 
   .detail {
-    padding: 12px;
+    min-height: auto;
+    padding: 10px;
   }
 
   .detail h2 {
-    font-size: 1.35rem;
+    font-size: 1.12rem;
+    line-height: 1.18;
+  }
+
+  .detail p,
+  .meta-line {
+    font-size: 0.74rem;
+  }
+
+  .detail p {
+    display: -webkit-box;
+    line-height: 1.35;
+    max-height: 4.05em;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 
   .detail-tabs {
@@ -1248,14 +1291,15 @@ h3 {
   }
 
   .detail-stats {
-    gap: 14px;
+    gap: 9px;
     display: grid;
     grid-template-columns: 1fr;
-    margin-top: 18px;
+    margin-top: 12px;
   }
 
   .detail-stats span {
     align-items: center;
+    font-size: 0.82rem;
     min-width: 0;
     overflow-wrap: anywhere;
   }
@@ -1266,16 +1310,37 @@ h3 {
 
   .score {
     margin-top: 8px;
-    width: 74px;
+    min-width: 68px;
+    width: 68px;
+    padding: 9px 6px;
+  }
+
+  .score strong {
+    font-size: 1.05rem;
   }
 
   .review-form {
     gap: 8px;
   }
 
+  .star-rating {
+    grid-template-columns: repeat(5, 38px);
+    max-width: none;
+    width: max-content;
+  }
+
+  .star-rating button {
+    min-height: 34px;
+    width: 38px;
+  }
+
   .review-form input,
   .review-form button {
     min-height: 46px;
+  }
+
+  .review-form textarea {
+    min-height: 76px;
   }
 
   .watch-panel {
