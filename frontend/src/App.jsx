@@ -164,6 +164,7 @@ export function App() {
   const [activeTab, setActiveTab] = useState('reviews');
   const [showTitleModal, setShowTitleModal] = useState(false);
   const [showWatchPanel, setShowWatchPanel] = useState(true);
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -419,7 +420,10 @@ export function App() {
 
   function openProfileEditor() {
     setProfileMenuOpen(false);
-    profileFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setShowProfileEditor(true);
+    window.setTimeout(() => {
+      profileFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
   }
 
   function openEditTitleModal(title) {
@@ -1226,57 +1230,59 @@ export function App() {
 
       <section className="layout">
         <aside className="sidebar">
-          <form
-            className="panel stack profile-panel"
-            ref={profileFormRef}
-            style={panelBackgroundStyle}
-            onSubmit={saveProfile}
-          >
-            <h2>
-              <User size={18} />
-              Perfil
-            </h2>
-            <label className="avatar-upload">
-              <img className="profile-avatar" src={displayedAvatar} alt="Avatar de perfil" />
-              <span>
-                <Upload size={15} />
-                Cambiar foto
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(event) => uploadAvatar(event.target.files?.[0])}
-              />
-            </label>
-            <label>
-              Usuario
-              <input
-                placeholder="Usuario"
-                value={profile?.username ?? ''}
-                onChange={(event) => setProfile({ ...(profile ?? {}), username: event.target.value })}
-              />
-            </label>
-            <label>
-              Nombre
-              <input
-                placeholder="Nombre"
-                value={profile?.full_name ?? ''}
-                onChange={(event) => setProfile({ ...(profile ?? {}), full_name: event.target.value })}
-              />
-            </label>
-            <label>
-              Bio
-              <textarea
-                placeholder="Escribe tu bio"
-                value={profile?.bio ?? ''}
-                onChange={(event) => setProfile({ ...(profile ?? {}), bio: event.target.value })}
-              />
-            </label>
-            <button className="primary" type="submit">
-              <Save size={17} />
-              Guardar
-            </button>
-          </form>
+          {showProfileEditor && (
+            <form
+              className="panel stack profile-panel"
+              ref={profileFormRef}
+              style={panelBackgroundStyle}
+              onSubmit={saveProfile}
+            >
+              <h2>
+                <User size={18} />
+                Perfil
+              </h2>
+              <label className="avatar-upload">
+                <img className="profile-avatar" src={displayedAvatar} alt="Avatar de perfil" />
+                <span>
+                  <Upload size={15} />
+                  Cambiar foto
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => uploadAvatar(event.target.files?.[0])}
+                />
+              </label>
+              <label>
+                Usuario
+                <input
+                  placeholder="Usuario"
+                  value={profile?.username ?? ''}
+                  onChange={(event) => setProfile({ ...(profile ?? {}), username: event.target.value })}
+                />
+              </label>
+              <label>
+                Nombre
+                <input
+                  placeholder="Nombre"
+                  value={profile?.full_name ?? ''}
+                  onChange={(event) => setProfile({ ...(profile ?? {}), full_name: event.target.value })}
+                />
+              </label>
+              <label>
+                Bio
+                <textarea
+                  placeholder="Escribe tu bio"
+                  value={profile?.bio ?? ''}
+                  onChange={(event) => setProfile({ ...(profile ?? {}), bio: event.target.value })}
+                />
+              </label>
+              <button className="primary" type="submit">
+                <Save size={17} />
+                Guardar
+              </button>
+            </form>
+          )}
 
           <button className="new-title-trigger" type="button" onClick={openNewTitleModal}>
             <Plus size={24} />
