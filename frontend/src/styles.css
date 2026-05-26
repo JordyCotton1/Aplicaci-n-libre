@@ -19,6 +19,7 @@
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 16% 8%, rgba(155, 77, 255, 0.28), transparent 24%),
     radial-gradient(circle at 82% 0%, rgba(0, 216, 255, 0.13), transparent 26%),
@@ -1047,6 +1048,27 @@ h3 {
     grid-template-columns: 1fr;
   }
 
+  .layout {
+    gap: 14px;
+  }
+
+  .sidebar {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.72fr);
+    align-items: start;
+  }
+
+  .profile-panel {
+    min-height: 100%;
+  }
+
+  .new-title-trigger {
+    align-self: start;
+  }
+
+  .content {
+    width: 100%;
+  }
+
   .detail-header {
     grid-template-columns: 150px 1fr;
   }
@@ -1089,6 +1111,14 @@ h3 {
     justify-self: stretch;
     width: 100%;
   }
+
+  .watch-panel {
+    max-height: min(58vh, 520px);
+  }
+
+  .watchlist {
+    max-height: min(42vh, 360px);
+  }
 }
 
 @media (max-width: 680px) {
@@ -1103,8 +1133,51 @@ h3 {
     padding: 14px;
   }
 
+  .brand-row h1 {
+    font-size: 1.34rem;
+  }
+
+  .brand-row p {
+    font-size: 0.74rem;
+    letter-spacing: 1.4px;
+  }
+
+  .toolbar {
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .toolbar button {
+    min-width: 40px;
+  }
+
+  .notification-popover {
+    left: 0;
+    right: 0;
+    top: 48px;
+    min-width: 0;
+    width: min(100vw - 28px, 360px);
+  }
+
   .layout {
     padding: 12px;
+  }
+
+  .sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  .profile-panel {
+    min-height: auto;
+  }
+
+  .new-title-trigger {
+    min-height: 58px;
   }
 
   .user-pill {
@@ -1121,8 +1194,7 @@ h3 {
 
   .title-grid,
   .detail-header,
-  .review-form,
-  .watch-item {
+  .review-form {
     grid-template-columns: 1fr;
   }
 
@@ -1135,8 +1207,12 @@ h3 {
   }
 
   .title-card {
-    flex: 0 0 210px;
+    flex: 0 0 min(78vw, 230px);
     scroll-snap-align: start;
+  }
+
+  .cover {
+    height: 148px;
   }
 
   .detail-cover {
@@ -1148,9 +1224,18 @@ h3 {
     padding: 12px;
   }
 
+  .detail h2 {
+    font-size: 1.35rem;
+  }
+
   .detail-tabs {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     overflow-x: auto;
+  }
+
+  .detail-tabs button {
+    min-width: 104px;
+    padding: 8px 10px;
   }
 
   .detail-stats {
@@ -1167,11 +1252,93 @@ h3 {
   }
 
   .watch-panel {
+    max-height: 430px;
+    min-height: 220px;
+  }
+
+  .watchlist {
+    max-height: 270px;
+    padding-right: 2px;
+  }
+
+  .watch-item {
+    grid-template-columns: 52px minmax(0, 1fr) 40px;
+    gap: 8px 10px;
     min-height: auto;
+    padding: 10px 0;
+  }
+
+  .watch-cover {
+    grid-row: 1 / 4;
+    width: 52px;
+    height: 66px;
+  }
+
+  .watch-item > div {
+    grid-column: 2 / 4;
+  }
+
+  .watch-item select {
+    grid-column: 2 / 3;
+    min-width: 0;
+  }
+
+  .watch-rating {
+    grid-column: 2 / 3;
+    width: 86px;
+  }
+
+  .watch-item button {
+    grid-column: 3;
+    grid-row: 2 / 4;
+    justify-self: end;
+    min-width: 36px;
   }
 
   .title-modal {
     max-height: 92vh;
     width: min(100%, 430px);
+  }
+
+  .modal-backdrop {
+    align-items: start;
+    overflow-y: auto;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .auth-page {
+    padding: 14px;
+  }
+
+  .auth-panel {
+    padding: 18px;
+  }
+
+  .brand-row svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .user-pill strong {
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .search-box input,
+  .select-shell select {
+    padding-left: 48px;
+  }
+
+  .search-box svg,
+  .select-shell svg {
+    left: 14px;
+  }
+
+  .star-rating {
+    max-width: none;
   }
 }
