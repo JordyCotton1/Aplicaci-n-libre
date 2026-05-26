@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Bell,
   BookOpen,
+  ChevronDown,
   CheckCircle2,
   Film,
   LogOut,
@@ -164,6 +165,7 @@ export function App() {
   const [showTitleModal, setShowTitleModal] = useState(false);
   const [showWatchPanel, setShowWatchPanel] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [refreshingCatalog, setRefreshingCatalog] = useState(false);
   const [message, setMessage] = useState('');
@@ -591,6 +593,7 @@ export function App() {
     // Cierro la sesión activa para ocultar las secciones privadas y limpiar los datos del usuario.
     const { error } = await supabase.auth.signOut();
     if (error) setMessage(error.message);
+    setProfileMenuOpen(false);
   }
 
   async function saveProfile(event) {
@@ -1115,10 +1118,43 @@ export function App() {
           </div>
         </div>
         <div className="toolbar">
-          <div className="user-pill">
+          <button
+            className="user-pill"
+            type="button"
+            onClick={() => {
+              setProfileMenuOpen((open) => !open);
+              setNotificationsOpen(false);
+            }}
+            title="Abrir perfil"
+          >
             <img src={displayedAvatar} alt="Avatar" />
             <strong>{profile?.username || 'noa'}</strong>
-          </div>
+            <ChevronDown size={16} />
+          </button>
+          {profileMenuOpen && (
+            <div className="profile-popover">
+              <div className="profile-popover-header">
+                <small>Cuenta de WatchList</small>
+                <strong>{profile?.username || 'usuario'}</strong>
+                <span>{user?.email}</span>
+              </div>
+              <div className="profile-popover-main">
+                <img src={displayedAvatar} alt="Avatar de perfil" />
+                <h2>Hola, {profile?.full_name || profile?.username || 'usuario'}.</h2>
+                <p>{profile?.bio || 'Series, películas y animes bajo control.'}</p>
+              </div>
+              <div className="profile-popover-actions">
+                <button type="button" onClick={() => setProfileMenuOpen(false)}>
+                  <User size={18} />
+                  Edita tu perfil en el panel izquierdo
+                </button>
+                <button type="button" onClick={handleLogout}>
+                  <LogOut size={18} />
+                  Cerrar sesión
+                </button>
+              </div>
+            </div>
+          )}
           <button
             className={refreshingCatalog ? 'spin-button' : ''}
             onClick={async () => {
@@ -1132,7 +1168,10 @@ export function App() {
           </button>
           <button
             className="notification-button"
-            onClick={() => setNotificationsOpen((open) => !open)}
+            onClick={() => {
+              setNotificationsOpen((open) => !open);
+              setProfileMenuOpen(false);
+            }}
             title="Notificaciones"
           >
             <Bell size={18} />
