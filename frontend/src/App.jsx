@@ -122,6 +122,25 @@ function normalizePublicStorageUrl(url) {
   return url.replace('/storage/v1/object/avatars/', '/storage/v1/object/public/avatars/');
 }
 
+function formatRelativeDate(createdAt, updatedAt) {
+  const created = createdAt ? new Date(createdAt) : null;
+  const updated = updatedAt ? new Date(updatedAt) : null;
+  const date =
+    updated && created && updated > created ? updated :
+    updated || created;
+
+  if (!date || Number.isNaN(date.getTime())) return 'Hoy';
+
+  const today = new Date();
+  const createdDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffDays = Math.floor((todayDay - createdDay) / 86400000);
+
+  if (diffDays <= 0) return 'Hoy';
+  if (diffDays === 1) return 'Ayer';
+  return `Hace ${diffDays} días`;
+}
+
 export function App() {
   const [session, setSession] = useState(null);
   const [authMode, setAuthMode] = useState('login');
@@ -1514,7 +1533,7 @@ export function App() {
                           <article key={review.id} className="review">
                             <header>
                               <strong>{review.profiles?.username || 'usuario'}</strong>
-                              <small>Hace 2 dias</small>
+                              <small>{formatRelativeDate(review.created_at, review.updated_at)}</small>
                               <span>{review.rating}/10</span>
                               {canManageUserContent(review.user_id) && (
                                 <div className="inline-actions">
