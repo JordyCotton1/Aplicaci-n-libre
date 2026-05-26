@@ -35,7 +35,8 @@ const emptyTitle = {
   synopsis: '',
   genre_id: '',
   other_genre: '',
-  cover: null
+  cover: null,
+  cover_url: ''
 };
 
 const avatarUrl = 'https://api.dicebear.com/8.x/adventurer/svg?seed=noa&backgroundColor=1e1b4b';
@@ -400,7 +401,8 @@ export function App() {
       synopsis: title.synopsis ?? '',
       genre_id: title.title_genres?.[0]?.genre_id ?? '',
       other_genre: '',
-      cover: null
+      cover: null,
+      cover_url: title.cover_url ?? ''
     });
     setShowTitleModal(true);
   }
@@ -717,13 +719,15 @@ export function App() {
       (titleForm.genre_id === 'other' && !titleForm.other_genre.trim()) ||
       !titleForm.release_year ||
       !titleForm.synopsis.trim() ||
-      (!editingTitle && !titleForm.cover)
+      (!editingTitle && !titleForm.cover && !titleForm.cover_url.trim())
     ) {
       setMessage('Completa nombre, tipo, género, año, sinopsis y portada antes de guardar.');
       return;
     }
 
-    const coverUrl = titleForm.cover ? await uploadCover(titleForm.cover) : editingTitle?.cover_url;
+    const coverUrl = titleForm.cover
+      ? await uploadCover(titleForm.cover)
+      : titleForm.cover_url.trim() || editingTitle?.cover_url;
     if (!coverUrl) return;
 
     const genreId = await resolveGenreId();
@@ -1286,16 +1290,26 @@ export function App() {
                 required
               />
             </label>
-            <label className="file-label">
-              <Upload size={17} />
-              Portada
-              <input
-                type="file"
-                accept="image/*"
-                required={!editingTitle}
-                onChange={(event) => setTitleForm({ ...titleForm, cover: event.target.files?.[0] ?? null })}
-              />
-            </label>
+            <div className="cover-options">
+              <label className="file-label">
+                <Upload size={17} />
+                Subir imagen
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => setTitleForm({ ...titleForm, cover: event.target.files?.[0] ?? null })}
+                />
+              </label>
+              <label>
+                O pegar link de imagen
+                <input
+                  type="url"
+                  value={titleForm.cover_url}
+                  onChange={(event) => setTitleForm({ ...titleForm, cover_url: event.target.value })}
+                  placeholder="https://ejemplo.com/portada.jpg"
+                />
+              </label>
+            </div>
             <button className="primary" type="submit">
               <Plus size={17} />
               {editingTitle ? 'Guardar cambios' : 'Crear'}
