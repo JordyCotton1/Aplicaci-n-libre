@@ -1217,7 +1217,14 @@ h3 {
 
   .detail-cover {
     width: 100%;
-    height: min(58vh, 420px);
+    height: auto;
+    aspect-ratio: 2 / 3;
+    max-height: 420px;
+  }
+
+  .detail-cover img {
+    object-fit: contain;
+    background: rgba(4, 8, 20, 0.92);
   }
 
   .detail {
@@ -1240,6 +1247,24 @@ h3 {
 
   .detail-stats {
     gap: 14px;
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-top: 18px;
+  }
+
+  .detail-stats span {
+    align-items: center;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .detail-stats span:last-child {
+    grid-column: auto;
+  }
+
+  .score {
+    margin-top: 8px;
+    width: 74px;
   }
 
   .review-form {
