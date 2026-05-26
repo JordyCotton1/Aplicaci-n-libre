@@ -716,7 +716,7 @@ export function App() {
           cover_url: coverUrl
         })
         .eq('id', editingTitle.id)
-        .select('*, title_genres(genre_id, genres(*))')
+        .select('*')
         .single();
 
       if (updateError) {

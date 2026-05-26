@@ -589,7 +589,8 @@ h3 {
 }
 
 .watch-panel {
-  min-height: 784px;
+  max-height: 520px;
+  min-height: 320px;
   overflow: hidden;
   position: relative;
 }
@@ -604,6 +605,24 @@ h3 {
 .watchlist {
   display: grid;
   gap: 14px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-color: var(--purple) rgba(8, 14, 32, 0.8);
+  scrollbar-width: thin;
+}
+
+.watchlist::-webkit-scrollbar {
+  width: 8px;
+}
+
+.watchlist::-webkit-scrollbar-thumb {
+  background: var(--purple);
+  border-radius: 999px;
+}
+
+.watchlist::-webkit-scrollbar-track {
+  background: rgba(8, 14, 32, 0.8);
 }
 
 .watch-item {
@@ -820,7 +839,7 @@ h3 {
 
 .review-form {
   display: grid;
-  grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.2fr) 180px;
+  grid-template-columns: minmax(260px, 1fr) 180px;
   gap: 10px;
   align-items: start;
   margin: 12px 104px 8px 214px;
@@ -848,6 +867,7 @@ h3 {
 }
 
 .review-form textarea {
+  grid-column: 1 / -1;
   min-height: 74px;
   min-width: 0;
 }
