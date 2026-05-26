@@ -1371,15 +1371,15 @@ export function App() {
                       </div>
                     </div>
                     <button
-                      className="secondary"
+                      className={titleIsInWatchlist(title.id) ? 'in-list-button' : 'secondary add-list-button'}
                       disabled={title.demo || titleIsInWatchlist(title.id)}
                       onClick={(event) => {
                         event.stopPropagation();
                         addToWatchlist(title);
                       }}
                     >
-                      <Plus size={16} />
-                      {titleIsInWatchlist(title.id) ? 'En lista' : 'Lista'}
+                      {titleIsInWatchlist(title.id) ? <CheckCircle2 size={16} /> : <Plus size={16} />}
+                      {titleIsInWatchlist(title.id) ? 'En mi lista' : 'Agregar a mi lista'}
                     </button>
                     {canManageTitle(title) && (
                       <div className="title-actions">
@@ -1414,7 +1414,11 @@ export function App() {
             </div>
 
           {currentTitle && (
-          <section className="panel detail" onClick={(event) => event.stopPropagation()}>
+          <section
+            className="panel detail"
+            style={currentTitle.cover_url ? { '--detail-bg': `url("${currentTitle.cover_url}")` } : undefined}
+            onClick={(event) => event.stopPropagation()}
+          >
               <>
                 <div className="detail-header">
                   <div className="detail-cover">

@@ -413,6 +413,29 @@ h3 {
   color: #9fd5ff;
 }
 
+.add-list-button,
+.in-list-button {
+  min-height: 52px;
+  width: 100%;
+  font-weight: 800;
+}
+
+.add-list-button {
+  border-color: rgba(80, 166, 255, 0.44);
+  background: linear-gradient(135deg, rgba(19, 39, 82, 0.92), rgba(12, 24, 55, 0.92));
+  color: #9fd5ff;
+}
+
+.in-list-button {
+  border-color: rgba(34, 211, 238, 0.34);
+  background: linear-gradient(135deg, rgba(22, 163, 145, 0.18), rgba(124, 58, 237, 0.16));
+  color: #bbf7f0;
+}
+
+.in-list-button:disabled {
+  opacity: 1;
+}
+
 .notice {
   align-items: center;
   display: flex;
@@ -716,8 +739,25 @@ h3 {
   overflow: hidden;
   padding: 10px 12px 6px;
   background:
-    linear-gradient(90deg, rgba(10, 20, 45, 0.92), rgba(8, 36, 76, 0.72)),
-    url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80") center/cover;
+    linear-gradient(90deg, rgba(7, 12, 30, 0.94), rgba(8, 18, 42, 0.76)),
+    var(--detail-bg, url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80")) center/cover;
+  position: relative;
+}
+
+.detail::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(155, 77, 255, 0.2), transparent 32%),
+    linear-gradient(90deg, rgba(5, 8, 22, 0.1), rgba(5, 8, 22, 0.55));
+  backdrop-filter: blur(10px) saturate(1.1);
+  pointer-events: none;
+}
+
+.detail > * {
+  position: relative;
+  z-index: 1;
 }
 
 .detail-header {
