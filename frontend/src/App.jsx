@@ -360,6 +360,12 @@ export function App() {
   const reviewCount = visibleReviews.length;
   const commentCount = comments.length;
   const displayedAvatar = normalizePublicStorageUrl(profile?.avatar_url) || avatarUrl;
+  const panelBackground =
+    currentTitle?.cover_url ||
+    visibleWatchlist.find((item) => item.titles?.cover_url)?.titles?.cover_url ||
+    visibleTitles.find((title) => title.cover_url)?.cover_url ||
+    demoTitles[4].cover_url;
+  const panelBackgroundStyle = panelBackground ? { '--panel-image': `url("${panelBackground}")` } : undefined;
   const isModerator =
     user?.email?.toLowerCase() === moderatorEmail ||
     profile?.username === moderatorUsername;
@@ -1151,7 +1157,7 @@ export function App() {
 
       <section className="layout">
         <aside className="sidebar">
-          <form className="panel stack" onSubmit={saveProfile}>
+          <form className="panel stack profile-panel" style={panelBackgroundStyle} onSubmit={saveProfile}>
             <h2>
               <User size={18} />
               Perfil
@@ -1645,7 +1651,7 @@ export function App() {
             </section>
 
             {showWatchPanel && (
-            <aside className="panel watch-panel" onClick={(event) => event.stopPropagation()}>
+            <aside className="panel watch-panel" style={panelBackgroundStyle} onClick={(event) => event.stopPropagation()}>
               <h2>
                 <Star size={19} />
                 Mi lista

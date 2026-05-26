@@ -304,22 +304,44 @@ h3 {
   padding: 18px;
 }
 
-.sidebar .panel {
+.sidebar .panel,
+.watch-panel {
   position: relative;
   overflow: hidden;
 }
 
-.sidebar .panel::after,
+.profile-panel::before,
+.title-modal::before,
+.watch-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(13, 17, 43, 0.94), rgba(6, 11, 28, 0.84) 54%, rgba(13, 18, 42, 0.96)),
+    var(--panel-image, url("https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=700&q=75")) center/cover;
+  opacity: 0.78;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.profile-panel::after,
+.title-modal::after,
 .watch-panel::after {
   content: "";
   position: absolute;
-  inset: auto -20px -80px auto;
-  width: 220px;
-  height: 280px;
-  background: url("https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=500&q=70") center/cover;
-  opacity: 0.08;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(155, 77, 255, 0.08), transparent 42%),
+    linear-gradient(90deg, rgba(5, 8, 22, 0.15), rgba(5, 8, 22, 0.46));
   pointer-events: none;
-  transform: rotate(-5deg);
+  z-index: 0;
+}
+
+.profile-panel > *,
+.title-modal > *,
+.watch-panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .profile-avatar {
