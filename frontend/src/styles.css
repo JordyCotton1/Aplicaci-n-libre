@@ -208,10 +208,6 @@ h3 {
   padding: 6px;
 }
 
-.toolbar > button:last-child {
-  display: none;
-}
-
 .notification-button {
   position: relative;
 }

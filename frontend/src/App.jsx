@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bell,
   BookOpen,
@@ -40,7 +40,7 @@ const emptyTitle = {
   cover_url: ''
 };
 
-const avatarUrl = 'https://api.dicebear.com/8.x/adventurer/svg?seed=noa&backgroundColor=1e1b4b';
+const avatarUrl = 'https://api.dicebear.com/8.x/adventurer/svg?seed=usuario&backgroundColor=1e1b4b';
 
 const demoTitles = [
   {
@@ -101,7 +101,7 @@ const demoReviews = [
     id: 'demo-review-1',
     rating: 10,
     body: 'Una obra maestra. La animacion y la historia son simplemente hermosas.',
-    profiles: { username: 'noa' }
+    profiles: { username: 'Usuario' }
   },
   {
     id: 'demo-review-2',
@@ -172,6 +172,9 @@ export function App() {
   const [loading, setLoading] = useState(true);
 
   const user = session?.user ?? null;
+  const profileButtonRef = useRef(null);
+  const profileMenuRef = useRef(null);
+  const profileFormRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -202,12 +205,32 @@ export function App() {
     if (!user) {
       setProfile(null);
       setWatchlist([]);
+      setProfileMenuOpen(false);
       return;
     }
 
     loadProfile();
     loadWatchlist();
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!profileMenuOpen) return undefined;
+
+    function closeProfileMenu(event) {
+      const target = event.target;
+      if (
+        profileButtonRef.current?.contains(target) ||
+        profileMenuRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      setProfileMenuOpen(false);
+    }
+
+    document.addEventListener('pointerdown', closeProfileMenu);
+    return () => document.removeEventListener('pointerdown', closeProfileMenu);
+  }, [profileMenuOpen]);
 
   useEffect(() => {
     loadCatalogData();
@@ -392,6 +415,11 @@ export function App() {
     setEditingTitle(null);
     setTitleForm(emptyTitle);
     setShowTitleModal(true);
+  }
+
+  function openProfileEditor() {
+    setProfileMenuOpen(false);
+    profileFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function openEditTitleModal(title) {
@@ -1120,6 +1148,7 @@ export function App() {
         <div className="toolbar">
           <button
             className="user-pill"
+            ref={profileButtonRef}
             type="button"
             onClick={() => {
               setProfileMenuOpen((open) => !open);
@@ -1128,25 +1157,25 @@ export function App() {
             title="Abrir perfil"
           >
             <img src={displayedAvatar} alt="Avatar" />
-            <strong>{profile?.username || 'noa'}</strong>
+            <strong>{profile?.username || 'Usuario'}</strong>
             <ChevronDown size={16} />
           </button>
           {profileMenuOpen && (
-            <div className="profile-popover">
+            <div className="profile-popover" ref={profileMenuRef}>
               <div className="profile-popover-header">
                 <small>Cuenta de WatchList</small>
-                <strong>{profile?.username || 'usuario'}</strong>
+                <strong>{profile?.username || 'Usuario'}</strong>
                 <span>{user?.email}</span>
               </div>
               <div className="profile-popover-main">
                 <img src={displayedAvatar} alt="Avatar de perfil" />
-                <h2>Hola, {profile?.full_name || profile?.username || 'usuario'}.</h2>
-                <p>{profile?.bio || 'Series, películas y animes bajo control.'}</p>
+                <h2>Hola, {profile?.full_name || profile?.username || 'Usuario'}.</h2>
+                <p>{profile?.bio?.trim() || 'Sin biografía agregada.'}</p>
               </div>
               <div className="profile-popover-actions">
-                <button type="button" onClick={() => setProfileMenuOpen(false)}>
+                <button type="button" onClick={openProfileEditor}>
                   <User size={18} />
-                  Edita tu perfil en el panel izquierdo
+                  Editar perfil
                 </button>
                 <button type="button" onClick={handleLogout}>
                   <LogOut size={18} />
@@ -1192,15 +1221,17 @@ export function App() {
               )}
             </div>
           )}
-          <button onClick={handleLogout} title="Cerrar sesión">
-            <LogOut size={18} />
-          </button>
         </div>
       </header>
 
       <section className="layout">
         <aside className="sidebar">
-          <form className="panel stack profile-panel" style={panelBackgroundStyle} onSubmit={saveProfile}>
+          <form
+            className="panel stack profile-panel"
+            ref={profileFormRef}
+            style={panelBackgroundStyle}
+            onSubmit={saveProfile}
+          >
             <h2>
               <User size={18} />
               Perfil
@@ -1220,7 +1251,7 @@ export function App() {
             <label>
               Usuario
               <input
-                placeholder="noa"
+                placeholder="Usuario"
                 value={profile?.username ?? ''}
                 onChange={(event) => setProfile({ ...(profile ?? {}), username: event.target.value })}
               />
@@ -1228,7 +1259,7 @@ export function App() {
             <label>
               Nombre
               <input
-                placeholder="Noa Tylor"
+                placeholder="Nombre"
                 value={profile?.full_name ?? ''}
                 onChange={(event) => setProfile({ ...(profile ?? {}), full_name: event.target.value })}
               />
@@ -1236,7 +1267,7 @@ export function App() {
             <label>
               Bio
               <textarea
-                placeholder="Fanatico del anime, las series y la tecnologia."
+                placeholder="Escribe tu bio"
                 value={profile?.bio ?? ''}
                 onChange={(event) => setProfile({ ...(profile ?? {}), bio: event.target.value })}
               />
